@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Models\Event;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
+use App\Exports\AttendanceExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AttendanceController extends Controller
 {
@@ -65,5 +67,12 @@ class AttendanceController extends Controller
                 'success',
                 'Presensi berhasil ditambahkan'
             );
+    }
+    public function export()
+    {
+        return Excel::download(
+            new AttendanceExport,
+            'laporan-presensi.xlsx'
+        );
     }
 }

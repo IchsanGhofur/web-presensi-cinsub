@@ -4,7 +4,7 @@
 
 <div class="mb-6">
     <h1 class="text-3xl font-bold">
-        👥 Data Peserta
+        Data Peserta
     </h1>
 
     <p class="text-gray-600 mt-2">
@@ -12,13 +12,19 @@
     </p>
 </div>
 
-<div class="mb-4">
-    <a href="/users/create"
-       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-        + Tambah Peserta
-    </a>
-</div>
+{{-- Tombol Tambah hanya Admin --}}
+@auth
+    @if(auth()->user()->isAdmin())
+        <div class="mb-4">
+            <a href="{{ route('users.create') }}"
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                + Tambah Peserta
+            </a>
+        </div>
+    @endif
+@endauth
 
+{{-- Notifikasi --}}
 @if(session('success'))
     <div class="bg-green-100 border border-green-300 text-green-700 p-3 rounded mb-4">
         {{ session('success') }}
@@ -38,12 +44,24 @@
         <table class="w-full border border-gray-300">
 
             <thead>
+
                 <tr class="bg-gray-200">
-                    <th class="border p-3 text-left">No</th>
+
+                    <th class="border p-3">No</th>
                     <th class="border p-3 text-left">Nama</th>
                     <th class="border p-3 text-left">NIM</th>
                     <th class="border p-3 text-left">ID</th>
+
+                    @auth
+                        @if(auth()->user()->isAdmin())
+                            <th class="border p-3 text-center">
+                                Aksi
+                            </th>
+                        @endif
+                    @endauth
+
                 </tr>
+
             </thead>
 
             <tbody>
@@ -67,40 +85,51 @@
                     <td class="border p-3 text-xs">
                         {{ $u->id }}
                     </td>
-                    <td class="border p-3">
 
-                        <form action="{{ route('users.destroy', $u->id) }}"
-                              method="POST"
-                              class="inline">
+                    @auth
+                        @if(auth()->user()->isAdmin())
 
-                            @csrf
-                            @method('DELETE')
+                        <td class="border p-3">
 
-                            <button
-                                type="submit"
-                                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                                onclick="return confirm('Yakin hapus peserta ini?')">
+                            <div class="flex gap-2 justify-center">
 
-                                Hapus
+                                <a href="{{ route('users.edit', $u->id) }}"
+                                   class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
+                                    Edit
+                                </a>
 
-                            </button>
+                                <form action="{{ route('users.destroy', $u->id) }}"
+                                      method="POST"
+                                      onsubmit="return confirm('Yakin ingin menghapus peserta ini?')">
 
-                        </form>
+                                    @csrf
+                                    @method('DELETE')
 
-                    </td>
+                                    <button type="submit"
+                                            class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded">
+                                        Hapus
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </td>
+
+                        @endif
+                    @endauth
 
                 </tr>
 
                 @endforeach
 
             </tbody>
-            
 
         </table>
 
     @else
 
-        <div class="bg-yellow-100 border border-yellow-300 p-4 rounded">
+        <div class="bg-yellow-100 border border-yellow-300 text-yellow-700 p-4 rounded">
             Belum ada data peserta.
         </div>
 

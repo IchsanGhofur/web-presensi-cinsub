@@ -1,59 +1,179 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Http;
+
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ScannerController;
-use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\DeviceController;
 
-Route::get('/', [DashboardController::class, 'index']);
-Route::get('/dashboard', [DashboardController::class, 'index']);
-Route::get('/test', function () {
-    return 'Laravel OK';
+/*
+|--------------------------------------------------------------------------
+| Redirect Root
+|--------------------------------------------------------------------------
+*/
+
+Route::redirect('/', '/dashboard');
+
+/*
+|--------------------------------------------------------------------------
+| PUBLIC ROUTES
+|--------------------------------------------------------------------------
+|
+| Dapat diakses tanpa login
+|
+*/
+
+Route::get('/dashboard', [
+    DashboardController::class,
+    'index'
+])->name('dashboard');
+
+Route::get('/dashboard/stats', [
+    DashboardController::class,
+    'stats'
+]);
+
+Route::get('/dashboard/latest-attendances', [
+    DashboardController::class,
+    'latestAttendances'
+]);
+
+Route::get('/users', [
+    UserController::class,
+    'index'
+])->name('users.index');
+
+Route::get('/events', [
+    EventController::class,
+    'index'
+])->name('events.index');
+
+
+/*
+|--------------------------------------------------------------------------
+| PANITIA & ADMIN
+|--------------------------------------------------------------------------
+|
+| Presensi dan Scanner
+|
+*/
+
+Route::middleware([
+    'auth',
+    'role:admin,panitia'
+])->group(function () {
+
+    Route::get('/attendance', [
+        AttendanceController::class,
+        'index'
+    ])->name('attendance.index');
+
+    Route::get('/attendance/export', [
+            AttendanceController::class,
+            'export'
+        ])->name('attendance.export');
+
+    Route::get('/attendance/create', [
+        AttendanceController::class,
+        'create'
+    ])->name('attendance.create');
+
+    Route::post('/attendance', [
+        AttendanceController::class,
+        'store'
+    ])->name('attendance.store');
+
+    Route::get('/scan', [
+        ScannerController::class,
+        'index'
+    ])->name('scan.index');
+
+    Route::post('/scan', [
+        ScannerController::class,
+        'store'
+    ])->name('scan.store');
+
 });
-Route::get('/layout-test', function () {
-    return view('layouts.app');
+
+
+/*
+|--------------------------------------------------------------------------
+| ADMIN ONLY
+|--------------------------------------------------------------------------
+|
+| CRUD Peserta, Event dan Aktivasi Event
+|
+*/
+
+Route::middleware([
+    'auth',
+    'role:admin'
+])->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | USERS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::resource('users', UserController::class)
+        ->except(['index']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | EVENTS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::resource('events', EventController::class)
+        ->except(['index']);
+
+    Route::post('/events/{id}/activate', [
+        EventController::class,
+        'activate'
+    ])->name('events.activate');
 });
-Route::get('/users', [UserController::class, 'index']);
-Route::get('/users/create', [UserController::class, 'create']);
-Route::post('/users', [UserController::class, 'store']);
-Route::get('/events', [EventController::class, 'index']);
-Route::resource('users', UserController::class);
-Route::get('/events/create', [EventController::class, 'create']);
-Route::post('/events', [EventController::class, 'store']);
-// Route::get('/attendance', function () {
-//    $data = \App\Models\Attendance::with('user')->latest()->get();
-//    return view('attendance.attendance', compact('data'));
-//});
-Route::get('/users/{id}/edit', [UserController::class, 'edit']);
-Route::put('/users/{id}', [UserController::class, 'update']);
-Route::delete('/users/{id}', [UserController::class, 'destroy']);
-
-Route::get('/events/{id}/edit', [EventController::class, 'edit']);
-Route::put('/events/{id}', [EventController::class, 'update']);
-Route::delete('/events/{id}', [EventController::class, 'destroy']);
-Route::post('/events/{id}/activate', [EventController::class, 'activate']);
 
 
-Route::get('/attendance', [AttendanceController::class, 'index']);
-Route::get('/attendance/create', [AttendanceController::class, 'create']);
-Route::post('/attendance', [AttendanceController::class, 'store']);
+/*
+|--------------------------------------------------------------------------
+| PROFILE
+|--------------------------------------------------------------------------
+|
+| Semua pengguna yang login
+|
+*/
 
-Route::get('/scan', [ScannerController::class, 'index']);
-Route::post('/scan', [ScannerController::class, 'store']);
+Route::middleware('auth')->group(function () {
 
-Route::get(
-    '/dashboard/stats',
-    [DashboardController::class, 'stats']
-);
+    Route::get('/profile', [
+        ProfileController::class,
+        'edit'
+    ])->name('profile.edit');
 
-Route::get(
-    '/dashboard/latest-attendances',
-    [DashboardController::class, 'latestAttendances']
-);
+    Route::patch('/profile', [
+        ProfileController::class,
+        'update'
+    ])->name('profile.update');
+
+    Route::delete('/profile', [
+        ProfileController::class,
+        'destroy'
+    ])->name('profile.destroy');
+
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| IoT Testing
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/test-api-key', function () {
 
@@ -70,5 +190,25 @@ Route::get('/test-api-key', function () {
 
 });
 
-Route::post('/device/ping', [DeviceController::class, 'ping'])
-    ->middleware(\App\Http\Middleware\VerifyIotApiKey::class);
+
+/*
+|--------------------------------------------------------------------------
+| Device Ping
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/device/ping', [
+    DeviceController::class,
+    'ping'
+])->middleware(
+    \App\Http\Middleware\VerifyIotApiKey::class
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes
+|--------------------------------------------------------------------------
+*/
+
+require __DIR__.'/auth.php';

@@ -10,7 +10,6 @@ class EventController extends Controller
     public function index()
     {
         $events = Event::latest()->get();
-
         return view('events.index', compact('events'));
     }
 

@@ -2,14 +2,46 @@
 
 @section('content')
 
-<h2 class="text-xl font-bold mb-4">
-    📊 Data Presensi
-</h2>
+<div class="flex items-center justify-between mb-6">
 
-<a href="/attendance/create"
-   class="bg-green-600 text-white px-4 py-2 rounded">
-    + Presensi Manual
-</a>
+    <div>
+
+        <h1 class="text-3xl font-bold">
+            Data Presensi
+        </h1>
+
+        <p class="text-gray-600 mt-2">
+            Daftar seluruh data presensi peserta.
+        </p>
+
+    </div>
+
+    <div class="flex gap-3">
+
+        {{-- Presensi Manual --}}
+        <a href="{{ route('attendance.create') }}"
+           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow flex items-center gap-2">
+
+            <i class="fa-solid fa-plus"></i>
+
+            Presensi Manual
+
+        </a>
+
+        {{-- Export Excel --}}
+        <a href="{{ route('attendance.export') }}"
+           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow flex items-center gap-2">
+
+            <i class="fa-solid fa-file-excel"></i>
+
+            Export Excel
+
+        </a>
+
+    </div>
+
+</div>
+
 
 <table class="w-full mt-4 bg-white shadow border">
 
