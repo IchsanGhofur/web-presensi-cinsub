@@ -1,0 +1,72 @@
+FROM dunglas/frankenphp:php8.4-bookworm
+
+WORKDIR /app
+
+# Install PHP extensions and system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    libpq-dev \
+    libzip-dev \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    && docker-php-ext-install \
+        pdo_pgsql \
+        zip \
+        gd \
+        bcmath \
+        mbstring \
+        exif \
+        pcntl \
+        xml \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Copy Laravel application
+COPY . .
+
+# Install PHP dependencies
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction \
+    --prefer-dist
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get update \
+    && apt-get install -y nodejs \
+    && npm --version \
+    && node --version \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Build frontend assets
+RUN npm ci \
+    && npm run build \
+    && rm -rf node_modules
+
+# Prepare Laravel directories
+RUN mkdir -p \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    bootstrap/cache
+
+RUN chown -R www-data:www-data \
+    storage \
+    bootstrap/cache
+
+# Laravel public directory
+ENV SERVER_ROOT=/app/public
+
+# Vercel provides PORT at runtime.
+# FrankenPHP uses SERVER_NAME to determine the listening address.
+EXPOSE 80
+
+CMD ["sh", "-c", "export SERVER_NAME=\":${PORT:-80}\" && exec frankenphp php-server --root /app/public"]
