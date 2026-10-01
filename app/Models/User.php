@@ -15,7 +15,8 @@ class User extends Model
     protected $fillable = [
         'id',
         'name',
-        'nim'
+        'nim',
+        'is_auto_registered',
     ];
 
     protected static function boot()

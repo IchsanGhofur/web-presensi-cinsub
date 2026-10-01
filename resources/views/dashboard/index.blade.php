@@ -4,11 +4,11 @@
 
 <div class="mb-6">
     <h1 class="text-3xl font-bold">
-        Dashboard Presensi Cinta <i>Subuh</i> UMS
+        <style="color:#153097;">Dashboard Presensi Cinta <em>Subuh</em> UMS</style>
     </h1>
 
     <p class="text-gray-600">
-        Monitoring Kegiatan Cinta Subuh UMS
+        <em>Monitoring Kegiatan Cinta Subuh UMS</em>
     </p>
 </div>
 

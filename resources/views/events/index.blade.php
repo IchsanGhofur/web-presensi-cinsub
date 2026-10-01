@@ -74,7 +74,7 @@
             
                 <div class="flex gap-2">
             
-                    <a href="/events/{{ $event->id }}/edit"
+                    <a href="route('events.edit',$event)"
                        class="bg-yellow-500 text-white px-2 py-1 rounded">
                         Edit
                     </a>

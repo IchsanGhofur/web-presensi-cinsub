@@ -41,7 +41,27 @@
     </div>
 
 </div>
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-gray-500">
+            Event Aktif
+        </h3>
 
+        <p id="activeEvent" class="font-bold">
+            {{ $activeEvent->title ?? 'Tidak Ada Event Aktif' }}
+        </p>
+    </div>
+
+    <!-- Presensi Hari Ini -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-gray-500">
+            Presensi Hari Ini
+        </h3>
+
+        <p id="todayAttendance" class="text-3xl font-bold">
+            {{ $todayAttendance }}
+        </p>
+    </div>
+</div>
 
 <table class="w-full mt-4 bg-white shadow border">
 
