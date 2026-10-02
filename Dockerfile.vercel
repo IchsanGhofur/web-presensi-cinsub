@@ -2,10 +2,11 @@ FROM dunglas/frankenphp:php8.4-bookworm
 
 WORKDIR /app
 
-# Install PHP extensions and system dependencies
+# System dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     unzip \
+    git \
     libpq-dev \
     libzip-dev \
     libpng-dev \
@@ -23,20 +24,20 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
+# Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Copy Laravel application
 COPY . .
 
-# Install PHP dependencies
+# Install Laravel dependencies
 RUN composer install \
     --no-dev \
-    --optimize-autoloader \
     --no-interaction \
-    --prefer-dist
+    --prefer-dist \
+    --optimize-autoloader
 
-# Install Node.js
+# Install Node.js 22
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get update \
     && apt-get install -y nodejs \
@@ -45,28 +46,26 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Build frontend assets
+# Build Vite assets
 RUN npm ci \
     && npm run build \
     && rm -rf node_modules
 
-# Prepare Laravel directories
+# Laravel writable directories
 RUN mkdir -p \
     storage/framework/cache \
     storage/framework/sessions \
     storage/framework/views \
     storage/logs \
-    bootstrap/cache
-
-RUN chown -R www-data:www-data \
-    storage \
-    bootstrap/cache
+    bootstrap/cache \
+    && chown -R www-data:www-data \
+        storage \
+        bootstrap/cache
 
 # Laravel public directory
 ENV SERVER_ROOT=/app/public
 
-# Vercel provides PORT at runtime.
-# FrankenPHP uses SERVER_NAME to determine the listening address.
+# Vercel container listens on $PORT.
 EXPOSE 80
 
-CMD ["sh", "-c", "export SERVER_NAME=\":${PORT:-80}\" && exec frankenphp php-server --root /app/public"]
+CMD ["sh", "-c", "frankenphp php-server --root /app/public --listen :${PORT:-80}"]
